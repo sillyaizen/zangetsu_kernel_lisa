@@ -725,6 +725,9 @@ static inline u32 id_aa64mmfr0_parange_to_phys_shift(int parange)
 	}
 }
 
+
+extern int get_cpu_with_amu_feat(void);
+
 #ifdef CONFIG_ARM64_AMU_EXTN
 /* Check whether the cpu supports the Activity Monitors Unit (AMU) */
 extern bool cpu_has_amu_feat(int cpu);
