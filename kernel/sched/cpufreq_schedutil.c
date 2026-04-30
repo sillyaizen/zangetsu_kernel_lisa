@@ -372,6 +372,9 @@ unsigned long schedutil_cpu_util(int cpu, unsigned long util_cfs,
 	if (!util)
 		return 0;
 
+	if (!util)
+		return 0;
+
 	/*
 	 * Early check to see if IRQ/steal time saturates the CPU, can be
 	 * because of inaccuracies in how we track these -- see
