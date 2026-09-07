@@ -133,7 +133,7 @@ void topology_set_freq_scale(const struct cpumask *cpus, unsigned long cur_freq,
 	trace_android_vh_arch_set_freq_scale((struct cpumask *)cpus, cur_freq, max_freq, &scale);
 
 	for_each_cpu(i, cpus){
-		per_cpu(freq_scale, i) = scale;
+		per_cpu(arch_freq_scale, i) = scale;
 		per_cpu(max_cpu_freq, i) = max_freq;
 	}
 }
@@ -165,6 +165,43 @@ void topology_set_cpu_scale(unsigned int cpu, unsigned long capacity)
 {
 	per_cpu(cpu_scale, cpu) = capacity;
 }
+
+DEFINE_PER_CPU(unsigned long, thermal_pressure);
+
+void topology_update_thermal_pressure(const struct cpumask *cpus,
+                                      unsigned long capped_freq)
+{
+        unsigned long max_capacity, capacity, th_pressure;
+        unsigned long max_freq;
+        int cpu;
+
+        if (cpumask_empty(cpus))
+                return;
+
+        cpu = cpumask_first(cpus);
+
+        max_capacity = per_cpu(cpu_scale, cpu);
+        max_freq = per_cpu(max_cpu_freq, cpu);
+
+        if (!max_freq || !max_capacity)
+                return;
+
+        /*
+         * capped_freq and max_cpu_freq are both in kHz.
+         * A boost frequency means there is no thermal throttling.
+         */
+        if (max_freq <= capped_freq)
+                capacity = max_capacity;
+        else
+                capacity = mult_frac(max_capacity, capped_freq, max_freq);
+
+        th_pressure = max_capacity - capacity;
+
+        for_each_cpu(cpu, cpus)
+                WRITE_ONCE(per_cpu(thermal_pressure, cpu), th_pressure);
+}
+EXPORT_SYMBOL_GPL(topology_update_thermal_pressure);
+EXPORT_PER_CPU_SYMBOL_GPL(thermal_pressure);
 
 static ssize_t cpu_capacity_show(struct device *dev,
 				 struct device_attribute *attr,

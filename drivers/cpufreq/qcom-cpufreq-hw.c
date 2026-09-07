@@ -5,6 +5,7 @@
 
 #include <linux/bitfield.h>
 #include <linux/cpufreq.h>
+#include <linux/arch_topology.h>
 #include <linux/cpu_cooling.h>
 #include <linux/energy_model.h>
 #include <linux/init.h>
@@ -161,7 +162,7 @@ static void qcom_lmh_dcvs_notify(struct cpufreq_qcom *c)
 	 * If the h/w throttled frequency is at or above what cpufreq has
 	 * requested, throttle has cleared. Stop polling and switch back to
 	 * the interrupt mechanism. Pin thermal_pressure to max_freq so that
-	 * arch_update_thermal_pressure removes any residual pressure.
+	 * topology_update_thermal_pressure removes any residual pressure.
 	 */
 	if (throttled_freq >= requested_freq) {
 		thermal_pressure = policy->cpuinfo.max_freq;
@@ -190,10 +191,9 @@ static void qcom_lmh_dcvs_notify(struct cpufreq_qcom *c)
 			     UINT_MAX : thermal_pressure);
 
 	trace_dcvsh_freq(cpu, requested_freq, throttled_freq, thermal_pressure);
->>>>>>> 380045b11febc (cpufreq: qcom-hw: Backport thermal pressure logic from msm-6.1)
 
 	/* Update thermal pressure (boost frequencies are accepted). */
-	arch_update_thermal_pressure(&c->related_cpus, thermal_pressure);
+	topology_update_thermal_pressure(&c->related_cpus, thermal_pressure);
 	c->dcvsh_freq_limit = thermal_pressure;
 
 out:
@@ -500,7 +500,7 @@ static int qcom_cpufreq_hw_cpu_offline(struct cpufreq_policy *policy)
 	if (!irqd_irq_disabled(irq_get_irq_data(c->dcvsh_irq)))
 		disable_irq(c->dcvsh_irq);
 
-	arch_update_thermal_pressure(&c->related_cpus, policy->cpuinfo.max_freq);
+	topology_update_thermal_pressure(&c->related_cpus, policy->cpuinfo.max_freq);
 	trace_dcvsh_throttle(cpumask_first(&c->related_cpus), 0);
 
 	return 0;
@@ -629,8 +629,6 @@ static int qcom_cpufreq_hw_read_lut(struct platform_device *pdev,
 	}
 
 	for_each_cpu(cpu, &c->related_cpus) {
-		per_cpu(cpufreq_boost_pcpu, cpu).c = c;
-		per_cpu(cpufreq_boost_pcpu, cpu).max_index = i - 1;
 	}
 
 	if (cpu_dev)

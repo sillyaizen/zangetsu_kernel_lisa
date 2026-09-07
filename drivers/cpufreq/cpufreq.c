@@ -2129,7 +2129,7 @@ unsigned int cpufreq_driver_fast_switch(struct cpufreq_policy *policy,
 		cpufreq_times_record_transition(policy, ret);
 		cpufreq_stats_record_transition(policy, ret);
 
-	arch_set_freq_scale(policy->related_cpus, freq,
+	arch_set_freq_scale(policy->related_cpus, ret,
 			    policy->cpuinfo.max_freq);
 	}
 
