@@ -10165,7 +10165,6 @@ voluntary_active_balance(struct lb_env *env)
 	if (asym_active_balance(env))
 		return 1;
 
-	}
 
 	if (env->idle != CPU_NOT_IDLE &&
 			env->src_grp_type == group_misfit_task)
