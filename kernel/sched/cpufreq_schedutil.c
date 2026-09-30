@@ -1296,18 +1296,18 @@ static int sugov_init(struct cpufreq_policy *policy)
 	default:
 	case 0: /* Little Cluster - Battery Focus */
 		tunables->rtg_boost_freq = DEFAULT_CPU0_RTG_BOOST_FREQ;
-		tunables->up_rate_limit_us = 2000;   /* Delay frequency spikes by 2ms */
+		tunables->up_rate_limit_us = 1000;   /* Delay frequency spikes by 2ms */
 		tunables->down_rate_limit_us = 2000; /* Hold frequency for 2ms */
 		tunables->hispeed_load = 95;         /* Resist jumping to high speeds */
 		break;
 	case 4: /* Big Cluster - Balanced */
 		tunables->rtg_boost_freq = DEFAULT_CPU4_RTG_BOOST_FREQ;
-		tunables->up_rate_limit_us = 1000;
+		tunables->up_rate_limit_us = 500;
 		tunables->down_rate_limit_us = 1000;
 		break;
 	case 7: /* Prime Core - Performance */
 		tunables->rtg_boost_freq = DEFAULT_CPU7_RTG_BOOST_FREQ;
-		tunables->up_rate_limit_us = 1000;
+		tunables->up_rate_limit_us = 500;
 		tunables->down_rate_limit_us = 1000;
 		break;
 	}
