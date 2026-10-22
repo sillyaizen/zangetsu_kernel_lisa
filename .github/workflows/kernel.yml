@@ -24,10 +24,10 @@ jobs:
           sudo apt-get install -y --no-install-recommends bc bison flex libssl-dev libelf-dev \
             ccache lld llvm clang zip python3 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
-      - - name: Toolchain
-  run: |
-    git clone --depth=1 https://github.com/kdrag0n/proton-clang "$HOME/clang"
-    echo "$HOME/clang/bin" >> $GITHUB_PATH
+      - name: Toolchain
+        run: |
+          git clone --depth=1 https://github.com/kdrag0n/proton-clang "$HOME/clang"
+          echo "$HOME/clang/bin" >> $GITHUB_PATH
 
       - uses: actions/cache@v4
         with:
