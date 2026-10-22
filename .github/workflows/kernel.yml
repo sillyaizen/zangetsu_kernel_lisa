@@ -1,1 +1,59 @@
+name: Build Kernel
+on:
+  workflow_dispatch:
+    inputs:
+      defconfig:
+        default: vendor/zangetsu_defconfig   # ajuste pro seu defconfig
 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Liberar disco
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Dependências
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends bc bison flex libssl-dev libelf-dev \
+            ccache lld llvm clang zip python3 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+
+      - name: Toolchain
+        run: |
+          git clone --depth=1 https://gitlab.com/<seu-clang-repo>.git "$HOME/clang"
+          echo "$HOME/clang/bin" >> $GITHUB_PATH
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ github.sha }}
+          restore-keys: ccache-
+
+      - name: Build
+        run: |
+          export ARCH=arm64 SUBARCH=arm64 CCACHE_DIR=$HOME/.cache/ccache
+          ARGS="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CC='ccache clang' \
+                CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_COMPAT=arm-linux-gnueabi-"
+          eval make $ARGS ${{ inputs.defconfig }}
+          eval make $ARGS -j$(nproc) 2>&1 | tee build.log
+
+      - name: Empacotar (AnyKernel3)
+        run: |
+          git clone --depth=1 https://github.com/<voce>/AnyKernel3 AK3
+          cp out/arch/arm64/boot/Image* AK3/
+          cp out/arch/arm64/boot/dts/vendor/qcom/*.dtb AK3/dtb 2>/dev/null || true
+          cd AK3 && zip -r9 ../Zenless-$(date +%Y%m%d).zip . -x '.git*'
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kernel
+          path: |
+            *.zip
+            build.log
