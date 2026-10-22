@@ -1,9 +1,6 @@
 name: Build Kernel
 on:
   workflow_dispatch:
-    inputs:
-      defconfig:
-        default: vendor/zangetsu_defconfig   # ajuste pro seu defconfig
 
 jobs:
   build:
@@ -37,18 +34,23 @@ jobs:
 
       - name: Build
         run: |
+          set -o pipefail
           export ARCH=arm64 SUBARCH=arm64 CCACHE_DIR=$HOME/.cache/ccache
           ARGS="O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CC='ccache clang' \
                 CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_COMPAT=arm-linux-gnueabi-"
-          eval make $ARGS ${{ inputs.defconfig }}
+          eval make $ARGS vendor/zangetsu_defconfig vendor/debugfs.config vendor/xiaomi_QGKI.config
           eval make $ARGS -j$(nproc) 2>&1 | tee build.log
 
       - name: Empacotar (AnyKernel3)
         run: |
-          git clone --depth=1 https://github.com/<voce>/AnyKernel3 AK3
-          cp out/arch/arm64/boot/Image* AK3/
-          cp out/arch/arm64/boot/dts/vendor/qcom/*.dtb AK3/dtb 2>/dev/null || true
+          git clone --depth=1 https://github.com/sillyaizen/AnyKernel AK3
+          echo "== conteúdo de out/arch/arm64/boot =="
+          ls -la out/arch/arm64/boot/
+          echo "== dtbo/dtb gerados =="
+          find out -name 'dtbo.img' -o -name '*.dtb' | head -30
+          cp out/arch/arm64/boot/Image AK3/
           cd AK3 && zip -r9 ../Zenless-$(date +%Y%m%d).zip . -x '.git*'
+          unzip -l ../Zenless-*.zip
 
       - uses: actions/upload-artifact@v4
         if: always()
