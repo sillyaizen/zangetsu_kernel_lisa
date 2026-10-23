@@ -43,7 +43,7 @@ jobs:
 
       - name: Empacotar (AnyKernel3)
         run: |
-          git clone --depth=1 https://github.com/sillyaizen/AnyKernel AK3
+          git clone --depth=1 -b master https://github.com/sillyaizen/AnyKernel AK3
           echo "== conteúdo de out/arch/arm64/boot =="
           ls -la out/arch/arm64/boot/
           echo "== dtbo/dtb gerados =="
